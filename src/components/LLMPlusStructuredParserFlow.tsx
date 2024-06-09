@@ -1,0 +1,171 @@
+'use client'
+
+import {useState}                   from "react";
+import {Label}                      from "@/components/ui/label"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+}                                   from "@/components/ui/card";
+import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group"
+import {Switch}                     from "@/components/ui/switch"
+import data                         from '@/utils/data.json';
+import cn                           from 'clsx';
+import Plan, {RegimenItem}          from "@/components/Plan";
+
+
+type Solution = {
+  name: string;
+  description: string;
+}
+
+export default function LLMPlusStructuredParserFlow() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [level, setLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
+  const [fitnessGoal, setFitnessGoal] = useState<string>("");
+  const [solutions, setSolutions] = useState([]);
+  const [selectedSolution, setSelectedRoutine] = useState<string | null>(null);
+  const [regimen, setRegimen] = useState<RegimenItem[] | null>(null);
+
+  const onGetWorkoutsSubmit = async () => {
+    if (level && fitnessGoal) {
+      setIsLoading(true);
+      const res = await fetch('/api/get-workouts', {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body:    JSON.stringify({level, fitnessGoal})
+      });
+      if (res.ok) {
+        const data = await res.json();
+        console.log({data});
+        setSolutions(data?.response);
+        setIsLoading(false);
+      } else {
+        setIsLoading(false);
+        throw new Error(res.statusText);
+      }
+    }
+  }
+
+  const onWeeklyRegimenRequestSubmit = async (selection: string) => {
+    if (level && selection) {
+      setIsLoading(true);
+      const res = await fetch('/api/get-weekly-regimen', {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body:    JSON.stringify({level, selection})
+      });
+      if (res.ok) {
+        const data = await res.json();
+        console.log({data});
+        setRegimen(data?.response);
+        setIsLoading(false);
+      } else {
+        setIsLoading(false);
+        throw new Error(res.statusText);
+      }
+    }
+  }
+
+  const onReset = () => {
+    setLevel('beginner');
+    setFitnessGoal("");
+    setSolutions([]);
+    setSelectedRoutine(null);
+    setRegimen(null);
+  }
+
+  return <div className={'w-full flex justify-center'}>
+    {solutions?.length === 0 && <div>
+      <p className={'py-8 w-full font-semibold text-2xl min-h-[120px]'}>I am a {level} user looking for {fitnessGoal ? fitnessGoal : '...'} solutions.</p>
+
+      <div className={'w-full py-4 flex justify-center'}>
+        <div>
+          <h2 className={'pb-2'}>Level:</h2>
+          <div className={'pb-8'}>
+            <RadioGroup defaultValue="beginner" onValueChange={(e: string) => setLevel(e as "beginner" | "intermediate" | "advanced")}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="beginner" id="beginner"/>
+                <Label htmlFor="option-one">Beginner</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="intermediate" id="intermediate"/>
+                <Label htmlFor="option-two">Intermediate</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="advanced" id="advanced"/>
+                <Label htmlFor="option-two">Advanced</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <h2 className={'pb-2'}>Fitness Goal:</h2>
+          <RadioGroup defaultValue={fitnessGoal} onValueChange={(e: string) => setFitnessGoal(e as string)}>
+            {data?.map((name: string, idx: number) =>
+                <div key={idx} className="flex items-center space-x-2">
+                  <RadioGroupItem value={name} id={name}/>
+                  <Label htmlFor={name}>{name}</Label>
+                </div>
+            )}
+          </RadioGroup>
+        </div>
+
+      </div>
+
+
+      <div className={'space-x-4 py-8 flex justify-center'}>
+        <button disabled={isLoading} className={cn('bg-gray-600 hover:bg-gray-800 text-lg text-white rounded-md py-2 px-6', {
+          "opacity-40": isLoading
+        })} onClick={onReset}>Reset
+        </button>
+
+        <button disabled={!fitnessGoal || isLoading} className={cn('min-w-[170px] bg-[#1d7a83] hover:bg-[#24969b] text-lg text-white rounded-md py-2 px-6', {
+          "opacity-40": !fitnessGoal || isLoading
+        })} onClick={onGetWorkoutsSubmit}>{isLoading ? 'calling LLM...' : 'Find Solutions'}
+        </button>
+
+      </div>
+    </div>}
+
+    {solutions?.length > 0 && !selectedSolution &&
+      <div>
+        <button className={'py-2'} onClick={onReset}>&lt; Back</button>
+        <div className={'grid grid-cols-2 gap-2'}>
+          {solutions?.map((item: Solution, idx: number) => (<Card key={idx} className="w-[350px]">
+            <CardHeader>
+              <CardTitle>{item.name}</CardTitle>
+              <CardDescription className={'pb-2'}>{item.description}</CardDescription>
+              <CardContent>
+                <div className={'w-full flex justify-center'}>
+                  <button onClick={async () => {
+                    console.log('click', item.name);
+                    setSelectedRoutine(item.name);
+                    await onWeeklyRegimenRequestSubmit(item.name);
+                  }}
+                          className={'w-full bg-[#bd70a6] hover:bg-[#dc83c1] text-lg text-white rounded-md py-2 px-6'}>Select
+                  </button>
+                </div>
+
+              </CardContent>
+            </CardHeader>
+          </Card>))}
+        </div>
+      </div>
+    }
+
+    {isLoading && selectedSolution && <p>Loading regimen...</p>}
+    {selectedSolution && regimen && <div>
+      <button className={'py-2'} onClick={onReset}>&lt; Back</button>
+      <Plan regimen={regimen}/>
+    </div>
+    }
+
+
+  </div>
+}
