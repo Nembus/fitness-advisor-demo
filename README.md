@@ -25,6 +25,7 @@ RAG Flows:
 We will need a vector database. Some options that Langchain can interface with are:
  local setup:
 * Memory
+* Chroma
 * local Postgres with PGVector
 * SQLite via Prisma?
 
