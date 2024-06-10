@@ -13,7 +13,7 @@ import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group"
 import data                         from '@/utils/data.json';
 import cn                           from 'clsx';
 import Plan, {RegimenItem}          from "@/components/Plan";
-
+import {useStore}                   from "@/lib/globalStore";
 
 type Solution = {
   name: string;
@@ -25,9 +25,13 @@ export default function LLMPlusStructuredParserFlow() {
   const [level, setLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
   const [fitnessGoal, setFitnessGoal] = useState<string>("");
   const [solutions, setSolutions] = useState([]);
-  const [LLM, setLLM] = useState<string>('openai');
+  // const [LLM, setLLM] = useState<string>('openai');
   const [selectedSolution, setSelectedRoutine] = useState<string | null>(null);
   const [regimen, setRegimen] = useState<RegimenItem[] | null>(null);
+  const LLM = useStore(state => state.sharedState);
+  const setLLM = useStore(state => state.setSharedState);
+
+
 
   const onGetWorkoutsSubmit = async () => {
     if (level && fitnessGoal) {
@@ -82,17 +86,19 @@ export default function LLMPlusStructuredParserFlow() {
   }
 
   return <div className={'w-full flex justify-center'}>
-    {solutions?.length === 0 && <div>
-      <div>
-        <RadioGroup className={'flex space-x-2'} defaultValue="openai" onValueChange={(e: string) => setLLM(e as "openai" | "anthropic")}>
+    {solutions?.length === 0 && <div className={''}>
+      <div className={'flex justify-center'}>
+        <RadioGroup className={'flex space-x-2'} defaultValue="openai" onValueChange={(e: string) => {
+          setLLM(e);
+        }}>
           <span>LLM:</span>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="openai" id="openai"/>
-            <Label htmlFor="openai">OpenAI</Label>
+            <Label htmlFor="openai">OpenAI (gpt-3.5-turbo)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="anthropic" id="anthropic"/>
-            <Label htmlFor="anthropic">Anthropic</Label>
+            <Label htmlFor="anthropic">Anthropic (claude-3-sonnet)</Label>
           </div>
         </RadioGroup>
       </div>
