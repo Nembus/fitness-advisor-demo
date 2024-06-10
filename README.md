@@ -33,6 +33,6 @@ remote:
 and many other options
 
 ## Running the project
-- Be sure to create an .env.local or .env file and enter OPENAI_API_KEY and ANTHROPIC_API_KEY if you're planning on using Anthropic.
+- Be sure to create an .env.local or .env file and enter OPENAI_API_KEY and ANTHROPIC_API_KEY if you're planning on using Anthropic. The default is OPENAI_API_KEY.
 - run pnpm install
 - run pnpm dev

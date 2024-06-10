@@ -10,15 +10,16 @@ import {
 
 import {listWorkoutRoutinesPrompt} from "@/utils/prompts"
 
-const model = new ChatOpenAI({
+const modelOpenAi = new ChatOpenAI({
   modelName:   "gpt-3.5-turbo",
   temperature: 0.7,
   // uncomment  below if you need logging
   // callbacks: [new ConsoleCallbackHandler()],
 });
 
-const chat = new ChatAnthropic({
+const modelAnthropic = new ChatAnthropic({
   model: "claude-3-sonnet-20240229",
+  apiKey: process.env.ANTHROPIC_API_KEY
 });
 
 
@@ -33,15 +34,19 @@ export async function POST(req: Request) {
       return NextResponse.json({error: validatedData.error.message, status: 400})
     }
 
-    const {level, fitnessGoal} = validatedData.data;
+    const {level, fitnessGoal, LLM} = validatedData.data;
 
 
     const outputParser = StructuredOutputParser.fromZodSchema(
         workoutRoutineSchema
     );
 
+    const currentModel = LLM === 'openai' ? modelOpenAi: modelAnthropic;
+
+    console.log(`running ${LLM === 'openai' ? 'openai':'anthropic'} model`);
+
     const chain = listWorkoutRoutinesPrompt
-        .pipe(model)
+        .pipe(currentModel)
         .pipe(outputParser);
 
     const response = await chain.invoke({

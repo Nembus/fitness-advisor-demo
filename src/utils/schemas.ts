@@ -10,6 +10,7 @@ export const workoutRequestSchema = z.object({
       value => data.includes(value),
       {message: "Invalid fitnessGoal"}
   ),
+  LLM: z.string()
 });
 
 export const weeklyRegimenInputSchema = z.object({
@@ -17,7 +18,8 @@ export const weeklyRegimenInputSchema = z.object({
       value => ['beginner', 'intermediate', 'advanced'].includes(value),
       {message: "Level must be 'beginner', 'intermediate', or 'advanced'"}
   ),
-  selection: z.string()
+  selection: z.string(),
+  LLM: z.string()
 });
 
 export const workoutRoutineSchema = z.array(z.object({

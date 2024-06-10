@@ -6,17 +6,17 @@ import {ChatAnthropic}                               from "@langchain/anthropic"
 import {provideAWeeklyRoutineBasedOnSelectionPrompt} from "@/utils/prompts";
 import {StructuredOutputParser}                      from "langchain/output_parsers";
 
-const model = new ChatOpenAI({
+const modelOpenAi = new ChatOpenAI({
   modelName:   "gpt-3.5-turbo",
   temperature: 0.9,
   // uncomment  below if you need logging
   // callbacks: [new ConsoleCallbackHandler()],
 });
 
-const chat = new ChatAnthropic({
+const modelAnthropic = new ChatAnthropic({
   model: "claude-3-sonnet-20240229",
+  apiKey: process.env.ANTHROPIC_API_KEY
 });
-
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -27,14 +27,18 @@ export async function POST(req: Request) {
       return NextResponse.json({error: validatedData.error.message, status: 400})
     }
 
-    const {level, selection} = validatedData.data;
+    const {level, selection, LLM} = validatedData.data;
 
     const outputParser = StructuredOutputParser.fromZodSchema(
         regimenSchema
     );
 
+    const currentModel = LLM === 'openai' ? modelOpenAi: modelAnthropic;
+
+        console.log(`running ${LLM === 'openai' ? 'openai':'anthropic'} model`);
+
     const chain = provideAWeeklyRoutineBasedOnSelectionPrompt
-        .pipe(model)
+        .pipe(currentModel)
         .pipe(outputParser);
 
     const response = await chain.invoke({

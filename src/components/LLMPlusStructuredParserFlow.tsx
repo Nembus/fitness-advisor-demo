@@ -10,7 +10,6 @@ import {
   CardTitle,
 }                                   from "@/components/ui/card";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group"
-import {Switch}                     from "@/components/ui/switch"
 import data                         from '@/utils/data.json';
 import cn                           from 'clsx';
 import Plan, {RegimenItem}          from "@/components/Plan";
@@ -26,6 +25,7 @@ export default function LLMPlusStructuredParserFlow() {
   const [level, setLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
   const [fitnessGoal, setFitnessGoal] = useState<string>("");
   const [solutions, setSolutions] = useState([]);
+  const [LLM, setLLM] = useState<string>('openai');
   const [selectedSolution, setSelectedRoutine] = useState<string | null>(null);
   const [regimen, setRegimen] = useState<RegimenItem[] | null>(null);
 
@@ -37,7 +37,7 @@ export default function LLMPlusStructuredParserFlow() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body:    JSON.stringify({level, fitnessGoal})
+        body:    JSON.stringify({level, fitnessGoal, LLM})
       });
       if (res.ok) {
         const data = await res.json();
@@ -59,7 +59,7 @@ export default function LLMPlusStructuredParserFlow() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body:    JSON.stringify({level, selection})
+        body:    JSON.stringify({level, selection, LLM})
       });
       if (res.ok) {
         const data = await res.json();
@@ -83,6 +83,19 @@ export default function LLMPlusStructuredParserFlow() {
 
   return <div className={'w-full flex justify-center'}>
     {solutions?.length === 0 && <div>
+      <div>
+        <RadioGroup className={'flex space-x-2'} defaultValue="openai" onValueChange={(e: string) => setLLM(e as "openai" | "anthropic")}>
+          <span>LLM:</span>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="openai" id="openai"/>
+            <Label htmlFor="openai">OpenAI</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="anthropic" id="anthropic"/>
+            <Label htmlFor="anthropic">Anthropic</Label>
+          </div>
+        </RadioGroup>
+      </div>
       <p className={'py-8 w-full font-semibold text-2xl min-h-[120px]'}>I am a {level} user looking for {fitnessGoal ? fitnessGoal : '...'} solutions.</p>
 
       <div className={'w-full py-4 flex justify-center'}>
@@ -92,15 +105,15 @@ export default function LLMPlusStructuredParserFlow() {
             <RadioGroup defaultValue="beginner" onValueChange={(e: string) => setLevel(e as "beginner" | "intermediate" | "advanced")}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="beginner" id="beginner"/>
-                <Label htmlFor="option-one">Beginner</Label>
+                <Label htmlFor="beginner">Beginner</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="intermediate" id="intermediate"/>
-                <Label htmlFor="option-two">Intermediate</Label>
+                <Label htmlFor="intermediate">Intermediate</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="advanced" id="advanced"/>
-                <Label htmlFor="option-two">Advanced</Label>
+                <Label htmlFor="advanced">Advanced</Label>
               </div>
             </RadioGroup>
           </div>
