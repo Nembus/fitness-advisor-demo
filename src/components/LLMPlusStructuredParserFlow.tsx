@@ -178,7 +178,7 @@ export default function LLMPlusStructuredParserFlow() {
       </div>
     }
 
-    {isLoading && selectedSolution && <p>Loading regimen...</p>}
+    {isLoading && selectedSolution && <p>Creating regimen...</p>}
     {selectedSolution && regimen && <div>
       <button className={'py-2'} onClick={onReset}>&lt; Back</button>
       <Plan regimen={regimen}/>
