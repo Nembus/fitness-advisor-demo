@@ -32,7 +32,6 @@ export default function LLMPlusStructuredParserFlow() {
   const setLLM = useStore(state => state.setSharedState);
 
 
-
   const onGetWorkoutsSubmit = async () => {
     if (level && fitnessGoal) {
       setIsLoading(true);
@@ -85,77 +84,77 @@ export default function LLMPlusStructuredParserFlow() {
     setRegimen(null);
   }
 
-  return <div className={'w-full flex justify-center'}>
-    {solutions?.length === 0 && <div className={''}>
-      <div className={'flex justify-center'}>
-        <RadioGroup className={'flex space-x-2'} defaultValue="openai" onValueChange={(e: string) => {
-          setLLM(e);
-        }}>
-          <span>LLM:</span>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="openai" id="openai"/>
-            <Label htmlFor="openai">OpenAI (gpt-3.5-turbo)</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="anthropic" id="anthropic"/>
-            <Label htmlFor="anthropic">Anthropic (claude-3-sonnet)</Label>
-          </div>
-        </RadioGroup>
-      </div>
-      <p className={'py-8 w-full font-semibold text-2xl min-h-[120px]'}>I am a {level} user looking for {fitnessGoal ? fitnessGoal : '...'} solutions.</p>
+  return <div>
+    {(solutions?.length > 0 && !selectedSolution || selectedSolution && regimen)  && <button className={'p-8'} onClick={onReset}>&lt; Back</button>}
+    <div className={'w-full flex justify-center p-16'}>
+      {solutions?.length === 0 && <div className={''}>
+        <div className={'flex justify-center'}>
+          <RadioGroup className={'flex space-x-2'} defaultValue="openai" onValueChange={(e: string) => {
+            setLLM(e);
+          }}>
+            <span>LLM:</span>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="openai" id="openai"/>
+              <Label htmlFor="openai">OpenAI (gpt-3.5-turbo)</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="anthropic" id="anthropic"/>
+              <Label htmlFor="anthropic">Anthropic (claude-3-sonnet)</Label>
+            </div>
+          </RadioGroup>
+        </div>
+        <p className={'py-8 w-full font-semibold text-2xl min-h-[120px]'}>I am a {level} user looking for {fitnessGoal ? fitnessGoal : '...'} solutions.</p>
 
-      <div className={'w-full py-4 flex justify-center'}>
-        <div>
-          <h2 className={'pb-2'}>Level:</h2>
-          <div className={'pb-8'}>
-            <RadioGroup defaultValue="beginner" onValueChange={(e: string) => setLevel(e as "beginner" | "intermediate" | "advanced")}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="beginner" id="beginner"/>
-                <Label htmlFor="beginner">Beginner</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="intermediate" id="intermediate"/>
-                <Label htmlFor="intermediate">Intermediate</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="advanced" id="advanced"/>
-                <Label htmlFor="advanced">Advanced</Label>
-              </div>
+        <div className={'w-full py-4 flex justify-center'}>
+          <div>
+            <h2 className={'pb-2'}>Level:</h2>
+            <div className={'pb-8'}>
+              <RadioGroup defaultValue="beginner" onValueChange={(e: string) => setLevel(e as "beginner" | "intermediate" | "advanced")}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="beginner" id="beginner"/>
+                  <Label htmlFor="beginner">Beginner</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="intermediate" id="intermediate"/>
+                  <Label htmlFor="intermediate">Intermediate</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="advanced" id="advanced"/>
+                  <Label htmlFor="advanced">Advanced</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <h2 className={'pb-2'}>Fitness Goal:</h2>
+            <RadioGroup defaultValue={fitnessGoal} onValueChange={(e: string) => setFitnessGoal(e as string)}>
+              {data?.map((name: string, idx: number) =>
+                  <div key={idx} className="flex items-center space-x-2">
+                    <RadioGroupItem value={name} id={name}/>
+                    <Label htmlFor={name}>{name}</Label>
+                  </div>
+              )}
             </RadioGroup>
           </div>
 
-          <h2 className={'pb-2'}>Fitness Goal:</h2>
-          <RadioGroup defaultValue={fitnessGoal} onValueChange={(e: string) => setFitnessGoal(e as string)}>
-            {data?.map((name: string, idx: number) =>
-                <div key={idx} className="flex items-center space-x-2">
-                  <RadioGroupItem value={name} id={name}/>
-                  <Label htmlFor={name}>{name}</Label>
-                </div>
-            )}
-          </RadioGroup>
         </div>
 
-      </div>
 
+        <div className={'space-x-4 py-8 flex justify-center'}>
+          <button disabled={isLoading} className={cn('bg-gray-600 hover:bg-gray-800 text-lg text-white rounded-md py-2 px-6', {
+            "opacity-40": isLoading
+          })} onClick={onReset}>Reset
+          </button>
 
-      <div className={'space-x-4 py-8 flex justify-center'}>
-        <button disabled={isLoading} className={cn('bg-gray-600 hover:bg-gray-800 text-lg text-white rounded-md py-2 px-6', {
-          "opacity-40": isLoading
-        })} onClick={onReset}>Reset
-        </button>
+          <button disabled={!fitnessGoal || isLoading} className={cn('min-w-[170px] bg-[#1d7a83] hover:bg-[#24969b] text-lg text-white rounded-md py-2 px-6', {
+            "opacity-40": !fitnessGoal || isLoading
+          })} onClick={onGetWorkoutsSubmit}>{isLoading ? 'calling LLM...' : 'Find Solutions'}
+          </button>
 
-        <button disabled={!fitnessGoal || isLoading} className={cn('min-w-[170px] bg-[#1d7a83] hover:bg-[#24969b] text-lg text-white rounded-md py-2 px-6', {
-          "opacity-40": !fitnessGoal || isLoading
-        })} onClick={onGetWorkoutsSubmit}>{isLoading ? 'calling LLM...' : 'Find Solutions'}
-        </button>
+        </div>
+      </div>}
 
-      </div>
-    </div>}
-
-    {solutions?.length > 0 && !selectedSolution &&
-      <div>
-        <button className={'py-2'} onClick={onReset}>&lt; Back</button>
-        <div className={'grid grid-cols-2 gap-2'}>
+      {solutions?.length > 0 && !selectedSolution &&
+        <div className={'grid grid-cols-2 gap-4'}>
           {solutions?.map((item: Solution, idx: number) => (<Card key={idx} className="w-[350px]">
             <CardHeader>
               <CardTitle>{item.name}</CardTitle>
@@ -175,16 +174,16 @@ export default function LLMPlusStructuredParserFlow() {
             </CardHeader>
           </Card>))}
         </div>
+      }
+
+      {isLoading && selectedSolution && <p>Creating regimen...</p>}
+      {selectedSolution && regimen && <div>
+        <Plan regimen={regimen} selectedSolution={selectedSolution}/>
       </div>
-    }
+      }
 
-    {isLoading && selectedSolution && <p>Creating regimen...</p>}
-    {selectedSolution && regimen && <div>
-      <button className={'py-2'} onClick={onReset}>&lt; Back</button>
-      <Plan regimen={regimen}/>
+
     </div>
-    }
-
-
   </div>
+
 }
